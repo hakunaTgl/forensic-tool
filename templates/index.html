@@ -1,0 +1,245 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Forensic AI Hub</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; }
+        #container { display: flex; height: 100vh; }
+        #sidebar {
+            width: 220px; background: #222; color: #fff; padding: 1em 0;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        #sidebar button {
+            width: 90%; margin: 0.5em 0; padding: 0.7em;
+            background: #333; color: #fff; border: none; border-radius: 5px;
+            cursor: pointer; font-size: 1em;
+            transition: background 0.2s;
+        }
+        #sidebar button.active { background: #007bff; }
+        #main { flex: 1; padding: 2em; background: #f7f7f7; }
+        .feature-section { display: none; margin-top: 2em; }
+        .feature-section.active { display: block; }
+        .status { font-size: 0.9em; margin-left: 1em; }
+        .status.active { color: green; }
+        .status.idle { color: #888; }
+        .status.error { color: red; }
+        .test-btn { margin-left: 1em; }
+    </style>
+</head>
+<body>
+<div id="container">
+    <div id="sidebar">
+        <h3>AI Hub</h3>
+        <button class="nav-btn active" data-section="chat-section">AI Chat <span id="chat-status" class="status idle">Idle</span></button>
+        <button class="nav-btn" data-section="apk-section">APK Analysis <span id="apk-status" class="status idle">Idle</span></button>
+        <button class="nav-btn" data-section="logs-section">Logs <span id="logs-status" class="status idle">Idle</span></button>
+        <button class="nav-btn" data-section="scraper-section">Website Scraper <span id="scraper-status" class="status idle">Idle</span></button>
+        <button class="nav-btn" data-section="emulator-section">Emulator <span id="emulator-status" class="status idle">Idle</span></button>
+    </div>
+    <div id="main">
+        <!-- AI Chat Section -->
+        <div id="chat-section" class="feature-section active">
+            <h2>Forensic AI Assistant</h2>
+            <div id="chat"></div>
+            <input id="input" type="text" placeholder="Type your command..." autofocus />
+            <button id="send">Send</button>
+            <button id="voice">🎤</button>
+        </div>
+        <!-- APK Analysis Section -->
+        <div id="apk-section" class="feature-section">
+            <h2>APK Analysis</h2>
+            <form id="apk-form">
+                <input type="file" id="apk-file" accept=".apk" />
+                <button type="submit">Analyze APK</button>
+                <span id="apk-test" class="test-btn"><button type="button" onclick="testApkAnalysis()">Test</button></span>
+            </form>
+            <pre id="apk-result"></pre>
+        </div>
+        <!-- Logs Section -->
+        <div id="logs-section" class="feature-section">
+            <h2>Scan Logs</h2>
+            <button id="refresh-logs">Refresh Logs</button>
+            <span id="logs-test" class="test-btn"><button type="button" onclick="testLogs()">Test</button></span>
+            <pre id="logs-result"></pre>
+        </div>
+        <!-- Website Scraper Section -->
+        <div id="scraper-section" class="feature-section">
+            <h2>Website Scraper</h2>
+            <form id="scrape-form">
+                <input type="url" id="scrape-url" placeholder="Enter website URL" required style="width:60%">
+                <button type="submit">Scrape</button>
+                <span id="scraper-test" class="test-btn"><button type="button" onclick="testScraper()">Test</button></span>
+            </form>
+            <pre id="scrape-result"></pre>
+            <div id="analyze-result"></div>
+        </div>
+        <!-- Emulator Section -->
+        <div id="emulator-section" class="feature-section">
+            <h2>Emulator Stream</h2>
+            <button id="start-stream">Start Stream</button>
+            <span id="emulator-test" class="test-btn"><button type="button" onclick="testEmulator()">Test</button></span>
+            <div id="emulator-video">[Emulator stream placeholder]</div>
+        </div>
+    </div>
+</div>
+<script>
+    // Navigation logic
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.feature-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(btn.dataset.section).classList.add('active');
+        };
+    });
+
+    // Status helpers
+    function setStatus(section, status, msg) {
+        const el = document.getElementById(section + '-status');
+        el.className = 'status ' + status;
+        el.textContent = msg || (status.charAt(0).toUpperCase() + status.slice(1));
+    }
+
+    // AI Chat logic
+    const chat = document.getElementById('chat');
+    const input = document.getElementById('input');
+    const send = document.getElementById('send');
+    const voice = document.getElementById('voice');
+    function appendMessage(sender, text) {
+        chat.innerHTML += `<b>${sender}:</b> ${text}<br>`;
+        chat.scrollTop = chat.scrollHeight;
+    }
+    send.onclick = async () => {
+        const text = input.value;
+        if (!text) return;
+        setStatus('chat', 'active', 'Active');
+        appendMessage('You', text);
+        input.value = '';
+        const res = await fetch('/voice-command', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({transcript: text})
+        });
+        const data = await res.json();
+        let reply = data.result || data.response || data.clarification || data.error || JSON.stringify(data);
+        appendMessage('AI', reply);
+        setStatus('chat', 'idle', 'Idle');
+    };
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') send.onclick(); });
+
+    // Voice input (Web Speech API)
+    voice.onclick = () => {
+        if (!('webkitSpeechRecognition' in window)) {
+            alert('Voice recognition not supported in this browser.');
+            return;
+        }
+        setStatus('chat', 'active', 'Listening...');
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            input.value = transcript;
+            send.onclick();
+        };
+        recognition.onend = () => setStatus('chat', 'idle', 'Idle');
+        recognition.start();
+    };
+
+    // APK Analysis logic
+    document.getElementById('apk-form').onsubmit = async (e) => {
+        e.preventDefault();
+        setStatus('apk', 'active', 'Analyzing...');
+        const fileInput = document.getElementById('apk-file');
+        if (!fileInput.files.length) return;
+        const formData = new FormData();
+        formData.append('apk', fileInput.files[0]);
+        const res = await fetch('/analyze-apk', { method: 'POST', body: formData });
+        const data = await res.json();
+        document.getElementById('apk-result').textContent = JSON.stringify(data, null, 2);
+        setStatus('apk', 'idle', 'Idle');
+    };
+    window.testApkAnalysis = async function() {
+        setStatus('apk', 'active', 'Testing...');
+        // Simulate test (replace with real test if needed)
+        setTimeout(() => {
+            document.getElementById('apk-result').textContent = 'Test APK analysis successful!';
+            setStatus('apk', 'idle', 'Idle');
+        }, 1000);
+    };
+
+    // Logs logic
+    document.getElementById('refresh-logs').onclick = async () => {
+        setStatus('logs', 'active', 'Refreshing...');
+        const res = await fetch('/logs');
+        const data = await res.json();
+        document.getElementById('logs-result').textContent = JSON.stringify(data, null, 2);
+        setStatus('logs', 'idle', 'Idle');
+    };
+    window.testLogs = async function() {
+        setStatus('logs', 'active', 'Testing...');
+        setTimeout(() => {
+            document.getElementById('logs-result').textContent = 'Test logs loaded!';
+            setStatus('logs', 'idle', 'Idle');
+        }, 1000);
+    };
+
+    // Website Scraper logic
+    document.getElementById('scrape-form').onsubmit = async (e) => {
+        e.preventDefault();
+        setStatus('scraper', 'active', 'Scraping...');
+        const url = document.getElementById('scrape-url').value;
+        if (!url) return;
+        document.getElementById('scrape-result').textContent = "Scraping...";
+        const res = await fetch('/scrape-website', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url})
+        });
+        const data = await res.json();
+        if (data.file_links) {
+            document.getElementById('scrape-result').innerHTML = data.file_links.map(link =>
+                `<a href="#" onclick="downloadAndAnalyze('${link}');return false;">${link}</a>`
+            ).join('<br>');
+        } else {
+            document.getElementById('scrape-result').textContent = JSON.stringify(data, null, 2);
+        }
+        setStatus('scraper', 'idle', 'Idle');
+    };
+    window.downloadAndAnalyze = async function(link) {
+        setStatus('scraper', 'active', 'Downloading...');
+        document.getElementById('analyze-result').textContent = "Downloading and analyzing...";
+        const res = await fetch('/download-and-analyze', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({file_url: link})
+        });
+        const data = await res.json();
+        document.getElementById('analyze-result').textContent = JSON.stringify(data, null, 2);
+        setStatus('scraper', 'idle', 'Idle');
+    };
+    window.testScraper = async function() {
+        setStatus('scraper', 'active', 'Testing...');
+        setTimeout(() => {
+            document.getElementById('scrape-result').textContent = 'Test scraper successful!';
+            setStatus('scraper', 'idle', 'Idle');
+        }, 1000);
+    };
+
+    // Emulator logic (placeholder)
+    document.getElementById('start-stream').onclick = () => {
+        setStatus('emulator', 'active', 'Starting...');
+        document.getElementById('emulator-video').textContent = 'Emulator stream started (placeholder)';
+        setTimeout(() => setStatus('emulator', 'idle', 'Idle'), 1000);
+    };
+    window.testEmulator = async function() {
+        setStatus('emulator', 'active', 'Testing...');
+        setTimeout(() => {
+            document.getElementById('emulator-video').textContent = 'Test emulator stream!';
+            setStatus('emulator', 'idle', 'Idle');
+        }, 1000);
+    };
+</script>
+</body>
+</html>

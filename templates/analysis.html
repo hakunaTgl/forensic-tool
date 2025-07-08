@@ -1,0 +1,26 @@
+<!-- templates/analysis.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🧪 Analysis Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>🧪 APK Analysis Results</h1>
+
+    <p><strong>Filename:</strong> {{ apk_name }}</p>
+    <p><strong>Risk Score:</strong> {{ risk_score }}/100</p>
+    <p><strong>AI Verdict:</strong> {{ verdict }}</p>
+
+    <h2>Permissions:</h2>
+    <ul>
+        {% for perm in permissions %}
+            <li {% if perm in dangerous_permissions %} style="color:red;" {% endif %}>
+                {{ perm }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <p><a href="/logs">📁 View All Logs</a> | <a href="/">⬅ Back to Home</a></p>
+</body>
+</html>

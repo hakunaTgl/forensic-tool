@@ -1,0 +1,22 @@
+<!-- templates/help_agent.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🧠 AI Help Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Ask The AI Security Assistant</h1>
+    <form method="post" action="/help">
+        <textarea name="query" placeholder="Ask anything about the dashboard, analysis, or APK behavior..." rows="6" cols="80" required></textarea><br><br>
+        <input type="submit" value="Ask AI">
+    </form>
+
+    {% if response %}
+    <h2>🗨️ AI Says:</h2>
+    <div style="border: 1px solid #ccc; padding: 10px;">{{ response }}</div>
+    {% endif %}
+
+    <p><a href="/">⬅ Back to Home</a></p>
+</body>
+</html>

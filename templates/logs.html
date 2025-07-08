@@ -1,0 +1,18 @@
+<!-- templates/logs.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>📁 Scan Logs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>📁 All Scans Logged</h1>
+    <ul>
+        {% for log in logs %}
+        <li>{{ log[3] }} → <strong>{{ log[1] }}</strong> scored <em>{{ log[2] }}</em>%</li>
+        {% endfor %}
+    </ul>
+
+    <p><a href="/dashboard">⬅ Dashboard</a></p>
+</body>
+</html>

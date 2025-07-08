@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>📸 Screenshot Viewer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>📸 Uploaded Screenshots</h1>
+    <img src="{{ url_for('static', filename='screenshot.png') }}" alt="Screenshot" width="80%">
+    <p><a href="/">⬅ Back to Home</a></p>
+</body>
+</html>

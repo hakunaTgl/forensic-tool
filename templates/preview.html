@@ -1,0 +1,22 @@
+<!-- templates/preview.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🌐 Website Previewer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>🌐 Preview Any Website</h1>
+    <form method="post" action="/preview">
+        <input type="url" name="url" placeholder="Enter a full https:// URL" size="70" required>
+        <input type="submit" value="Render">
+    </form>
+
+    {% if target_url %}
+    <h2>Live View of {{ target_url }}</h2>
+    <iframe src="{{ target_url }}" width="100%" height="500px" style="border:1px solid black;"></iframe>
+    {% endif %}
+
+    <p><a href="/">⬅ Back to Home</a></p>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!-- templates/upload.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>📤 Upload APK</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Upload Your APK</h1>
+    <form action="/scan" method="post" enctype="multipart/form-data">
+        <input type="file" name="apk_file" accept=".apk" required>
+        <br><br>
+        <input type="submit" value="Analyze">
+    </form>
+
+    <p><a href="/">⬅ Back to Home</a></p>
+</body>
+</html>

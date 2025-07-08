@@ -1,0 +1,157 @@
+<!-- templates/dashboard.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Forensic AI Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; }
+        #container { display: flex; height: 100vh; }
+        #sidebar {
+            width: 220px; background: #222; color: #fff; padding: 1em 0;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        #sidebar button {
+            width: 90%; margin: 0.5em 0; padding: 0.7em;
+            background: #333; color: #fff; border: none; border-radius: 5px;
+            cursor: pointer; font-size: 1em;
+            transition: background 0.2s;
+        }
+        #sidebar button.active { background: #007bff; }
+        #main { flex: 1; padding: 2em; background: #f7f7f7; }
+        .feature-section { display: none; margin-top: 2em; }
+        .feature-section.active { display: block; }
+        pre { background: #eee; padding: 1em; }
+    </style>
+</head>
+<body>
+<div id="container">
+    <div id="sidebar">
+        <h3>AI Hub</h3>
+        <button class="nav-btn active" data-section="scraper-section">Website Scraper</button>
+        <button class="nav-btn" data-section="apk-section">APK Analysis</button>
+        <button class="nav-btn" data-section="logs-section">Logs</button>
+        <button class="nav-btn" data-section="chat-section">AI Chat</button>
+    </div>
+    <div id="main">
+        <!-- Website Scraper Section -->
+        <div id="scraper-section" class="feature-section active">
+            <h2>Website Scraper</h2>
+            <form id="scrape-form">
+                <input type="url" id="scrape-url" placeholder="Enter website URL" required style="width:60%">
+                <button type="submit">Scrape</button>
+            </form>
+            <pre id="scrape-result"></pre>
+            <div id="analyze-result"></div>
+        </div>
+        <!-- APK Analysis Section -->
+        <div id="apk-section" class="feature-section">
+            <h2>APK Analysis</h2>
+            <form id="apk-form">
+                <input type="file" id="apk-file" accept=".apk" />
+                <button type="submit">Analyze APK</button>
+            </form>
+            <pre id="apk-result"></pre>
+        </div>
+        <!-- Logs Section -->
+        <div id="logs-section" class="feature-section">
+            <h2>Scan Logs</h2>
+            <button id="refresh-logs">Refresh Logs</button>
+            <pre id="logs-result"></pre>
+        </div>
+        <!-- AI Chat Section -->
+        <div id="chat-section" class="feature-section">
+            <h2>Forensic AI Assistant</h2>
+            <div id="chat"></div>
+            <input id="input" type="text" placeholder="Type your command..." autofocus />
+            <button id="send">Send</button>
+        </div>
+    </div>
+</div>
+<script>
+    // Navigation logic
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.feature-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(btn.dataset.section).classList.add('active');
+        };
+    });
+
+    // Website Scraper logic
+    document.getElementById('scrape-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const url = document.getElementById('scrape-url').value;
+        if (!url) return;
+        document.getElementById('scrape-result').textContent = "Scraping...";
+        const res = await fetch('/scrape-website', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url})
+        });
+        const data = await res.json();
+        if (data.file_links) {
+            document.getElementById('scrape-result').innerHTML = data.file_links.map(link =>
+                `<a href="#" onclick="downloadAndAnalyze('${link}');return false;">${link}</a>`
+            ).join('<br>');
+        } else {
+            document.getElementById('scrape-result').textContent = JSON.stringify(data, null, 2);
+        }
+    };
+    window.downloadAndAnalyze = async function(link) {
+        document.getElementById('analyze-result').textContent = "Downloading and analyzing...";
+        const res = await fetch('/download-and-analyze', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({file_url: link})
+        });
+        const data = await res.json();
+        document.getElementById('analyze-result').textContent = JSON.stringify(data, null, 2);
+    };
+
+    // APK Analysis logic
+    document.getElementById('apk-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const fileInput = document.getElementById('apk-file');
+        if (!fileInput.files.length) return;
+        const formData = new FormData();
+        formData.append('apk', fileInput.files[0]);
+        const res = await fetch('/analyze-apk', { method: 'POST', body: formData });
+        const data = await res.json();
+        document.getElementById('apk-result').textContent = JSON.stringify(data, null, 2);
+    };
+
+    // Logs logic
+    document.getElementById('refresh-logs').onclick = async () => {
+        const res = await fetch('/log-feed');
+        const data = await res.json();
+        document.getElementById('logs-result').textContent = JSON.stringify(data, null, 2);
+    };
+
+    // AI Chat logic (dummy, just echoes input)
+    const chat = document.getElementById('chat');
+    const input = document.getElementById('input');
+    const send = document.getElementById('send');
+    function appendMessage(sender, text) {
+        chat.innerHTML += `<b>${sender}:</b> ${text}<br>`;
+        chat.scrollTop = chat.scrollHeight;
+    }
+    send.onclick = async () => {
+        const text = input.value;
+        if (!text) return;
+        appendMessage('You', text);
+        input.value = '';
+        const res = await fetch('/voice-command', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({transcript: text})
+        });
+        const data = await res.json();
+        let reply = data.response || data.error || JSON.stringify(data);
+        appendMessage('AI', reply);
+    };
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') send.onclick(); });
+</script>
+</body>
+</html>
