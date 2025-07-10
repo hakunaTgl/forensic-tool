@@ -74,8 +74,8 @@ def extract_apk_info(apk_path):
             'raw_output': aapt_output
         }
     except subprocess.CalledProcessError as e:
-            'version': version,iled: {e.output.decode()}")
-            'raw_output': aapt_outputode()}
-        }t Exception as e:
-    except subprocess.CalledProcessError as e:}")
-        logging.error(f"AAPT failed: {e.output.decode()}")        return {'error': e.output.decode()}    except Exception as e:        logging.error(f"General error: {str(e)}")        return {'error': str(e)}
+        logging.error(f"AAPT failed: {e.output.decode()}")
+        return {'error': e.output.decode()}
+    except Exception as e:
+        logging.error(f"General error: {str(e)}")
+        return {'error': str(e)}

@@ -12,10 +12,3 @@ def start_emulator_stream():
     print("Emulator stream started (stub).")
     return True
 
-def extract_permissions(apk_path: str) -> dict[str, str]:
-    # implementation
-    pass
-
-def decompile_apk(apk_path: str, output_dir: str = "decompiled_output") -> dict[str, str]:
-    # implementation
-    pass
