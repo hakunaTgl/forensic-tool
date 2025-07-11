@@ -24,8 +24,3 @@ def get_scan_report(scan_hash):
     response = requests.get(MOBSF_URL + 'report_json', headers=headers, params=params)
     return response.json()
 
-def extract_permissions(apk_path: str) -> dict[str, str]:
-    # implementation
-
-def decompile_apk(apk_path: str, output_dir: str = "decompiled_output") -> dict[str, str]:
-    # implementation
