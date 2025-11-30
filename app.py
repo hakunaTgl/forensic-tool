@@ -194,7 +194,11 @@ def start_emulator():
 def main():
     """Run the Flask application."""
     logger.info("Starting Forensic AI Tool server...")
-    app.run(debug=True, host='0.0.0.0', port=12000)
+    # Debug mode is controlled by environment variable (defaults to False for security)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    host = os.environ.get('FLASK_HOST', '0.0.0.0')
+    port = int(os.environ.get('FLASK_PORT', '12000'))
+    app.run(debug=debug_mode, host=host, port=port)
 
 
 if __name__ == '__main__':
